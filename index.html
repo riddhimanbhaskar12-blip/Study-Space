@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudySpace — Student Dashboard</title>
+<style>
+:root{--bg:#f4f6fb;--panel:#fff;--ink:#20243a;--muted:#737b91;--accent:#6558e8;--accent2:#8d83ff;--line:#e8eaf2;--good:#16a477;--shadow:0 12px 35px rgba(37,42,76,.07)}
+:root[data-theme="dark"]{--bg:#101321;--panel:#191e30;--ink:#edf0ff;--muted:#a3abc2;--accent:#9288ff;--accent2:#b0a9ff;--line:#2c334b;--good:#46c99b;--shadow:0 12px 35px rgba(0,0,0,.22)}
+body{transition:background .2s,color .2s}
+.date{background:var(--panel);border-color:var(--line);color:var(--muted)}
+input,select,textarea{background:var(--bg);color:var(--ink);border-color:var(--line)}
+.btn.secondary{background:color-mix(in srgb,var(--accent) 13%,var(--panel));color:var(--accent)}
+.btn.ghost,.mode{background:var(--bg);color:var(--muted)}
+.mode.active{background:color-mix(in srgb,var(--accent) 16%,var(--panel));color:var(--accent)}
+.quote{background:color-mix(in srgb,var(--accent) 5%,var(--panel));border-color:var(--line)}
+.track{background:var(--line)}
+.theme-toggle{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:9px 12px;border-radius:12px;font-weight:700}
+.header-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.hero{position:relative;overflow:hidden}
+.hero-clock{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-1.8px;font-variant-numeric:tabular-nums;margin-top:10px}
+.hero-greeting{font-size:15px;font-weight:650;margin-top:2px;color:#fff}
+.hero-date{font-size:12px;color:#e3e0ff;margin-top:2px}
+.focus-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.focus-tools select{width:auto;min-width:145px;padding:8px 10px}
+.alarm-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.alarm-row input{flex:1;min-width:140px}
+.alarm-status{font-size:12px;color:var(--muted);margin-top:10px;min-height:18px}
+.alarm-ringing{color:#e05a67;font-weight:750}
+#focusCard.focus-fullscreen{position:fixed;inset:0;z-index:1000;border-radius:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:30px;background:var(--bg);overflow:auto}
+#focusCard.focus-fullscreen .timer{width:min(700px,100%)}
+#focusCard.focus-fullscreen .clock{font-size:clamp(72px,15vw,150px)}
+#focusCard.focus-fullscreen .card-head{width:min(700px,100%)}
+#focusCard.focus-fullscreen .hint{font-size:15px}
+#focusCard.focus-fullscreen .focus-tools{justify-content:center}
+.task{background:var(--panel)}
+@media(max-width:580px){.header-actions{width:100%;justify-content:space-between}.hero-clock{font-size:35px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,Segoe UI,Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}
+.app{max-width:1250px;margin:auto;padding:26px 22px 50px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:25px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:45px;height:45px;border-radius:15px;background:linear-gradient(135deg,var(--accent),#a49cff);display:grid;place-items:center;color:white;font-size:22px;font-weight:800;box-shadow:0 8px 18px #6558e844}
+h1{font-size:23px;margin:0;letter-spacing:-.5px}.sub{color:var(--muted);font-size:13px}.date{background:#fff;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--muted);font-size:13px}
+.hero{background:linear-gradient(115deg,#29245f,#6558e8 68%,#8f86ff);color:white;border-radius:23px;padding:27px 30px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 16px 35px #6558e82b}
+.hero h2{font-size:25px;margin:0 0 6px}.hero p{margin:0;color:#e3e0ff}.hero-mark{font-size:45px;opacity:.9}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:17px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:19px;box-shadow:var(--shadow);min-width:0}
+.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}.card h3{font-size:16px;margin:0}.eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.pill{background:#f0efff;color:var(--accent);padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700}
+input,select,textarea{width:100%;border:1px solid var(--line);background:#fbfcff;border-radius:10px;padding:10px 12px;color:var(--ink);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px #6558e81a}
+.btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;font-weight:650}.btn:hover{filter:brightness(1.06)}.btn.secondary{background:#f0efff;color:var(--accent)}.btn.ghost{background:#f4f5f9;color:#50566b}.btn.small{padding:7px 10px;font-size:12px}
+.task-form{display:flex;gap:8px;margin-bottom:13px}.task-form input{flex:1;min-width:0}.task-list{display:grid;gap:8px}.task{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--line);border-radius:11px}.task input{width:17px;height:17px;accent-color:var(--accent)}.task.done .task-text{text-decoration:line-through;color:#9aa0b1}.task-text{flex:1;overflow-wrap:anywhere}.delete{background:transparent;color:#9aa0b1;font-size:18px;padding:0 4px}.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.progress-row{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:12px}.track{height:8px;background:#eff0f6;border-radius:20px;overflow:hidden;margin-top:6px}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#a59cff);transition:width .2s}
+.timer{text-align:center;padding:5px 0 2px}.timer-mode{display:flex;justify-content:center;gap:6px;margin-bottom:12px}.mode{padding:7px 11px;border-radius:20px;background:#f3f4f9;color:#70778b;font-size:12px}.mode.active{background:#eeedff;color:var(--accent);font-weight:700}.clock{font-size:48px;font-weight:750;letter-spacing:-2px;font-variant-numeric:tabular-nums;margin:4px 0 12px}.timer-actions{display:flex;justify-content:center;gap:8px}
+.quote{background:#fbfaff;border:1px solid #eeebff;border-radius:14px;padding:17px}.quote p{font-size:16px;font-weight:600;margin:0 0 7px}.quote small{color:var(--muted)}.quote-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.music-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.music-controls input[type=file]{max-width:100%;font-size:12px;padding:7px}.music-note{color:var(--muted);font-size:12px;margin-top:10px}
+.doubt textarea{min-height:95px;resize:vertical}.doubt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.hint{font-size:12px;color:var(--muted);margin:9px 0 0}
+.ncert-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ncert-grid .wide{grid-column:1/-1}.ncert-note{font-size:12px;color:var(--muted);margin-top:10px}
+footer{text-align:center;color:#969bad;font-size:12px;margin-top:24px}
+@media(max-width:850px){.span-4,.span-5,.span-7,.span-8{grid-column:span 6}.hero{padding:22px}.hero-mark{display:none}}
+@media(max-width:580px){.app{padding:17px 13px 35px}header{align-items:flex-start}.date{font-size:11px}.hero h2{font-size:21px}.span-4,.span-5,.span-7,.span-8,.span-12{grid-column:span 12}.clock{font-size:43px}.ncert-grid{grid-template-columns:1fr}.ncert-grid .wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><div class="logo">S</div><div><h1>StudySpace</h1><div class="sub">Your little corner for big goals.</div><div style="font-size:11px;color:#955 bad;margin-top:2px;">♡ made with heart by Bhaskar class 10th</div></div></div>
+  <div class="header-actions"><button class="theme-toggle" id="themeToggle" type="button">🌙 Dark mode</button><div class="date" id="today"></div></div>
+</header>
+<section class="hero">
+  <div><div class="eyebrow" style="color:#d7d2ff">STUDENT DASHBOARD</div><h2>Make today count ✨</h2><p>One focused session at a time. You've got this.</p><div class="hero-clock" id="liveClock">00:00:00</div><div class="hero-greeting" id="greeting">Good evening!</div><div class="hero-date" id="liveDate"></div></div>
+  <div class="hero-mark">📚</div>
+</section>
+<main class="grid">
+  <section class="card span-7">
+    <div class="card-head"><h3>✅ My tasks</h3><span class="pill" id="taskCount">0 tasks</span></div>
+    <form class="task-form" id="taskForm"><input id="taskInput" placeholder="Add a task (e.g. Revise Biology)" maxlength="100" required><button class="btn" type="submit">Add</button></form>
+    <div class="task-list" id="taskList"><div class="empty">No tasks yet. Add one small goal to get started.</div></div>
+    <div class="progress-row"><span>Daily progress</span><strong id="progressText">0%</strong></div><div class="track"><div class="bar" id="progressBar"></div></div>
+  </section>
+  <section class="card span-5">
+    <div class="card-head"><h3>⏱️ Quick timer</h3><span class="pill">Task timer</span></div>
+    <div class="timer"><div class="clock" id="quickClock">00:00</div><div class="timer-actions"><button class="btn" id="quickStart">Start</button><button class="btn secondary" id="quickReset">Reset</button></div></div>
+    <p class="hint">Counts up while you work. Use it to track one task.</p>
+  </section>
+  <section class="card span-5" id="focusCard">
+    <div class="card-head"><h3>🍅 Focus mode</h3><span class="pill">Focus mode</span></div>
+    <div class="timer">
+      <div class="focus-tools"><label class="eyebrow" for="focusDuration">Focus time</label><select id="focusDuration"><option value="25">25 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="50">50 minutes</option><option value="60">60 minutes</option></select><button class="btn ghost small" id="fullscreenFocus" type="button">⛶ Fullscreen</button></div><div class="timer-mode"><button class="mode active" data-mode="focus">Focus</button><button class="mode" data-mode="short">Short · 5m</button><button class="mode" data-mode="long">Long · 15m</button></div>
+      <div class="clock" id="pomClock">25:00</div>
+      <div class="timer-actions"><button class="btn" id="pomStart">Start</button><button class="btn secondary" id="pomReset">Reset</button></div>
+      <p class="hint" id="pomStatus">Ready for a focused session?</p>
+    </div>
+  </section>
+  <section class="card span-7">
+    <div class="card-head"><h3>🎵 Music player</h3><span class="pill">Your audio</span></div>
+    <div class="music-controls"><input type="file" id="audioFile" accept="audio/*"><button class="btn secondary small" id="playMusic">Play</button><button class="btn ghost small" id="pauseMusic">Pause</button></div>
+    <audio id="audio" controls style="width:100%;margin-top:14px"></audio>
+    <div class="music-note">Choose an audio file saved on your device. This page doesn't stream or include copyrighted music.</div>
+  </section>
+  <section class="card span-5">
+    <div class="card-head"><h3>🔔 Alarm</h3><span class="pill">Custom reminder</span></div>
+    <div class="alarm-row"><input type="time" id="alarmTime" aria-label="Alarm time"><button class="btn" id="setAlarm" type="button">Set alarm</button><button class="btn secondary" id="stopAlarm" type="button" disabled>Stop</button></div>
+    <div class="alarm-status" id="alarmStatus">Choose a time. Keep this tab open for the alarm to ring.</div>
+    <p class="hint">The alarm uses your browser's sound. Your device must stay on and this page must remain open.</p>
+  </section>
+  <section class="card span-12">
+    <div class="card-head"><h3>💬 A little motivation</h3><span class="pill">Changes every 10 seconds</span></div>
+    <div class="quote"><p id="quoteText"></p><small id="quoteAuthor"></small><div class="quote-foot"><span class="eyebrow">A thought for right now</span><button class="btn secondary small" id="nextQuote">Next quote ↗</button></div></div>
+  </section>
+  <section class="card span-7 doubt">
+    <div class="card-head"><h3>🤖 AI doubt helper</h3><span class="pill">Ask a question</span></div>
+    <textarea id="doubtInput" placeholder="Type your doubt here… e.g. Explain photosynthesis in simple words."></textarea>
+    <div class="doubt-actions"><button class="btn" id="askAI">Ask in ChatGPT ↗</button><button class="btn secondary" id="copyDoubt">Copy doubt</button></div>
+    <p class="hint">Your question opens ChatGPT in a new tab. For a real AI assistant built directly into this site, a secure AI API and backend are needed—never put a private API key in browser code.</p>
+  </section>
+  <section class="card span-5">
+    <div class="card-head"><h3>📖 NCERT study finder</h3><span class="pill">Classes 1–12</span></div>
+    <div class="ncert-grid">
+      <div><label class="eyebrow" for="classSelect">Class</label><select id="classSelect"></select></div>
+      <div><label class="eyebrow" for="subjectSelect">Subject</label><select id="subjectSelect"></select></div>
+      <div class="wide"><label class="eyebrow" for="chapterInput">Chapter / topic</label><input id="chapterInput" placeholder="e.g. Chemical Reactions and Equations"></div>
+      <button class="btn wide" id="findNCERT">Find explanations & solutions ↗</button>
+    </div>
+    <p class="ncert-note">Searches for chapter-wise learning help. Class 1–12 books and subjects vary by class and syllabus. This finder uses web search; it does not contain or reproduce every NCERT solution.</p>
+  </section>
+</main>
+<footer>Made for focused learning · StudySpace<br><strong>Made with ❤️ by Bhaskar</strong></footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function updateLiveClock(){
+ const now=new Date(),h=now.getHours();
+ $('today').textContent=now.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+ $('liveClock').textContent=now.toLocaleTimeString(undefined,{hour12:true,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ $('liveDate').textContent=now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ $('greeting').textContent=h>=20?'Good night 🌙':h>=17?'Good evening 🌆':h>=12?'Good afternoon ☀️':'Good morning ☀️';
+}
+updateLiveClock();setInterval(updateLiveClock,1000);
+const savedTheme=localStorage.getItem('studyspace_theme')||'light';
+document.documentElement.dataset.theme=savedTheme;
+function updateThemeButton(){$('themeToggle').textContent=document.documentElement.dataset.theme==='dark'?'☀️ Light mode':'🌙 Dark mode'}
+updateThemeButton();
+$('themeToggle').onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('studyspace_theme',next)}catch(e){}updateThemeButton()};
+
+// Tasks
+let tasks=[];
+try{tasks=JSON.parse(localStorage.getItem('studyspace_tasks')||'[]')}catch(e){tasks=[]}
+function saveTasks(){try{localStorage.setItem('studyspace_tasks',JSON.stringify(tasks))}catch(e){}}
+function renderTasks(){
+ const list=$('taskList');list.innerHTML='';
+ if(!tasks.length)list.innerHTML='<div class="empty">No tasks yet. Add one small goal to get started.</div>';
+ tasks.forEach((t,i)=>{const row=document.createElement('div');row.className='task'+(t.done?' done':'');
+ const check=document.createElement('input');check.type='checkbox';check.checked=t.done;check.setAttribute('aria-label','Mark task complete');check.onchange=()=>{tasks[i].done=check.checked;saveTasks();renderTasks()};
+ const span=document.createElement('span');span.className='task-text';span.textContent=t.text;
+ const del=document.createElement('button');del.className='delete';del.textContent='×';del.title='Delete task';del.onclick=()=>{tasks.splice(i,1);saveTasks();renderTasks()};
+ row.append(check,span,del);list.append(row)});
+ const done=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
+ $('taskCount').textContent=tasks.length+' task'+(tasks.length===1?'':'s');$('progressText').textContent=pct+'%';$('progressBar').style.width=pct+'%';
+}
+$('taskForm').addEventListener('submit',e=>{e.preventDefault();const v=$('taskInput').value.trim();if(v){tasks.push({text:v,done:false});saveTasks();renderTasks();$('taskInput').value=''}});
+renderTasks();
+
+// Quick count-up timer
+let quickSeconds=0,quickRunning=false,quickInterval=null;
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function drawQuick(){$('quickClock').textContent=fmt(quickSeconds)}
+$('quickStart').onclick=()=>{quickRunning=!quickRunning;$('quickStart').textContent=quickRunning?'Pause':'Start';if(quickRunning)quickInterval=setInterval(()=>{quickSeconds++;drawQuick()},1000);else clearInterval(quickInterval)};
+$('quickReset').onclick=()=>{clearInterval(quickInterval);quickRunning=false;quickSeconds=0;$('quickStart').textContent='Start';drawQuick()};
+
+// Pomodoro
+const durations={focus:25*60,short:5*60,long:15*60};let mode='focus',remaining=durations.focus,pomInterval=null,pomRunning=false;
+function drawPom(){$('pomClock').textContent=fmt(remaining)}
+function stopPom(){clearInterval(pomInterval);pomInterval=null;pomRunning=false;$('pomStart').textContent='Start'}
+function setMode(m){stopPom();mode=m;remaining=m==='focus'?Number($('focusDuration').value)*60:durations[m];document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));$('pomStatus').textContent=m==='focus'?'Ready for a focused session?':'Take a refreshing break.';drawPom()}
+$('focusDuration').onchange=()=>{if(mode==='focus')setMode('focus')};
+$('fullscreenFocus').onclick=async()=>{const card=$('focusCard');card.classList.toggle('focus-fullscreen');if(card.classList.contains('focus-fullscreen')){try{if(card.requestFullscreen)await card.requestFullscreen()}catch(e){}}else{try{if(document.fullscreenElement)await document.exitFullscreen()}catch(e){}}$('fullscreenFocus').textContent=card.classList.contains('focus-fullscreen')?'⤢ Exit fullscreen':'⛶ Fullscreen'};
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('focusCard').classList.contains('focus-fullscreen')){$('focusCard').classList.remove('focus-fullscreen');$('fullscreenFocus').textContent='⛶ Fullscreen'}});
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('pomStart').onclick=()=>{if(pomRunning){stopPom();return}pomRunning=true;$('pomStart').textContent='Pause';pomInterval=setInterval(()=>{remaining--;drawPom();if(remaining<=0){stopPom();$('pomStatus').textContent='Session complete! Take a moment to reset. 🎉';try{if('Notification'in window&&Notification.permission==='granted')new Notification('StudySpace',{body:'Your timer is complete!'})}catch(e){}}},1000)};
+$('pomReset').onclick=()=>setMode(mode);drawPom();
+
+// Local audio player
+let audioUrl=null;
+$('audioFile').onchange=e=>{const file=e.target.files[0];if(!file)return;if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=URL.createObjectURL(file);$('audio').src=audioUrl;$('audio').load()};
+$('playMusic').onclick=()=>{if(!$('audio').src){alert('First choose an audio file from your device.');return}$('audio').play()};
+$('pauseMusic').onclick=()=>$('audio').pause();
+
+
+// Custom alarm: rings while this page is open and the device is awake
+let alarmTarget=null,alarmInterval=null,alarmAudioContext=null;
+function alarmBeep(){
+ try{const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+ if(!alarmAudioContext)alarmAudioContext=new AudioCtx();if(alarmAudioContext.state==='suspended')alarmAudioContext.resume();
+ const osc=alarmAudioContext.createOscillator(),gain=alarmAudioContext.createGain();osc.type='sine';osc.frequency.value=880;gain.gain.value=0.18;
+ osc.connect(gain);gain.connect(alarmAudioContext.destination);osc.start();osc.stop(alarmAudioContext.currentTime+0.45);
+ }catch(e){}
+}
+function ringAlarm(){
+ clearInterval(alarmInterval);alarmInterval=null;alarmTarget=null;
+ $('alarmStatus').textContent='⏰ Alarm ringing! Press Stop to dismiss.';$('alarmStatus').classList.add('alarm-ringing');$('stopAlarm').disabled=false;
+ alarmBeep();let count=0;alarmInterval=setInterval(()=>{alarmBeep();if(++count>120){clearInterval(alarmInterval);alarmInterval=null}},1000);
+ try{if('Notification'in window&&Notification.permission==='granted')new Notification('StudySpace alarm',{body:'Your reminder is ringing!'})}catch(e){}
+}
+$('setAlarm').onclick=async()=>{
+ const value=$('alarmTime').value;if(!value){$('alarmStatus').textContent='Please choose an alarm time first.';return}
+ const now=new Date(),[hh,mm]=value.split(':').map(Number),target=new Date();target.setHours(hh,mm,0,0);if(target<=now)target.setDate(target.getDate()+1);
+ alarmTarget=target.getTime();$('alarmStatus').classList.remove('alarm-ringing');$('alarmStatus').textContent='Alarm set for '+target.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'. Keep this tab open.';
+ $('stopAlarm').disabled=true;try{if('Notification'in window&&Notification.permission==='default')await Notification.requestPermission()}catch(e){}
+ clearInterval(alarmInterval);alarmInterval=setInterval(()=>{if(alarmTarget&&Date.now()>=alarmTarget)ringAlarm()},500);
+};
+$('stopAlarm').onclick=()=>{clearInterval(alarmInterval);alarmInterval=null;alarmTarget=null;$('alarmStatus').classList.remove('alarm-ringing');$('alarmStatus').textContent='Alarm stopped. Set another time whenever you need.';$('stopAlarm').disabled=true;};
+
+// Rotating quotes
+const quotes=[
+['“The secret of getting ahead is getting started.”','Mark Twain'],
+['“It always seems impossible until it’s done.”','Nelson Mandela'],
+['“Great things are done by a series of small things brought together.”','Vincent van Gogh'],
+['“You don’t have to be perfect to make progress.”','StudySpace reminder'],
+['“The expert in anything was once a beginner.”','Helen Hayes'],
+['“Success is the sum of small efforts, repeated day in and day out.”','Robert Collier'],
+['“Believe you can and you’re halfway there.”','Theodore Roosevelt'],
+['“Learning never exhausts the mind.”','Leonardo da Vinci']
+];let quoteIndex=-1;
+function nextQuote(){quoteIndex=(quoteIndex+1)%quotes.length;$('quoteText').textContent=quotes[quoteIndex][0];$('quoteAuthor').textContent='— '+quotes[quoteIndex][1]}
+$('nextQuote').onclick=nextQuote;nextQuote();setInterval(nextQuote,10000);
+
+// Doubt helper: opens ChatGPT with the question in the URL query
+$('askAI').onclick=()=>{const q=$('doubtInput').value.trim();if(!q){alert('Type your doubt first.');return}window.open('https://chatgpt.com/?q='+encodeURIComponent(q),'_blank','noopener')};
+$('copyDoubt').onclick=async()=>{const q=$('doubtInput').value.trim();if(!q){alert('Type your doubt first.');return}try{await navigator.clipboard.writeText(q);$('copyDoubt').textContent='Copied!';setTimeout(()=>$('copyDoubt').textContent='Copy doubt',1500)}catch(e){$('doubtInput').select();alert('Press Ctrl+C to copy your doubt.')}};
+
+// NCERT search builder
+const subjectsByClass={
+'1':['English','Hindi','Mathematics','Environmental Studies'],
+'2':['English','Hindi','Mathematics','Environmental Studies'],
+'3':['English','Hindi','Mathematics','Environmental Studies'],
+'4':['English','Hindi','Mathematics','Environmental Studies'],
+'5':['English','Hindi','Mathematics','Environmental Studies'],
+'6':['English','Hindi','Mathematics','Science','Social Science','Sanskrit'],
+'7':['English','Hindi','Mathematics','Science','Social Science','Sanskrit'],
+'8':['English','Hindi','Mathematics','Science','Social Science','Sanskrit'],
+'9':['English','Hindi','Mathematics','Science','Social Science','Sanskrit'],
+'10':['English','Hindi','Mathematics','Science','Social Science','Sanskrit'],
+'11':['English','Hindi','Mathematics','Physics','Chemistry','Biology','Accountancy','Business Studies','Economics','Computer Science','Political Science','History','Geography'],
+'12':['English','Hindi','Mathematics','Physics','Chemistry','Biology','Accountancy','Business Studies','Economics','Computer Science','Political Science','History','Geography']
+};
+for(let c=1;c<=12;c++){const o=document.createElement('option');o.value=c;o.textContent='Class '+c;$('classSelect').append(o)}
+function fillSubjects(){const arr=subjectsByClass[$('classSelect').value];$('subjectSelect').innerHTML='';arr.forEach(s=>{const o=document.createElement('option');o.textContent=s;$('subjectSelect').append(o)})}
+$('classSelect').onchange=fillSubjects;fillSubjects();
+$('findNCERT').onclick=()=>{const cls=$('classSelect').value,sub=$('subjectSelect').value,chapter=$('chapterInput').value.trim();const q=`NCERT Class ${cls} ${sub} ${chapter} chapter explanation solutions study material`;window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank','noopener')};
+</script>
+</body>
+</html>
